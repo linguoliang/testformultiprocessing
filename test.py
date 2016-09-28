@@ -5,9 +5,12 @@ from multiprocessing.dummy import Pool as Pl
 from multiprocessing import Array
 import time
 import numpy
+import random
 global list1
+# size=[]
 import plotslidingwindow
-
+# for x in range(30000):
+#     size.append([x,random.randint(1,100)])
 size=[[1,5],[2,5],[3,6],[4,7],[5,7],[6,8],[7,8],[8,9],[9,9],[10,9],[11,7],[12,7],[13,6],[14,6],[17,6],[18,3],[19,7]]
 
 plotslidingwindow.plotfig(size)

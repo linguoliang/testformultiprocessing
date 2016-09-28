@@ -90,7 +90,7 @@ def slidingwindow(filehindle,schaffold,window_size):
 
 def plotfig(windowdata):
     data=numpy.array(windowdata)
-    fig=plt.bar(data[:,0],data[:,1])
+    fig=plt.bar(data[:,0],data[:,1],linewidth=0,width=1,color='r')
     fig[0].set_color("r")
     plt.show()
 
