@@ -1,4 +1,4 @@
-#codig=UTF-8
+# codig=UTF-8
 import seaborn as sb
 from matplotlib import pylab
 from matplotlib import pyplot as plt
@@ -8,6 +8,8 @@ import optparse
 import sys
 import time
 import GTF_decoding
+import random
+
 # from sliding_windows import sliding_window
 
 _author__ = 'Guoliang Lin'
@@ -16,8 +18,9 @@ version = '1.0.0'
 bugfixs = ''
 __date__ = '2016-09-28'
 
+seqdepth = 5
 
-seqdepth=5
+
 def printinformations():
     print("%s software version is %s in %s" % (Softwarename, version, __date__))
     print(bugfixs)
@@ -26,6 +29,7 @@ def printinformations():
 
 def programends():
     print('Ends at :' + time.strftime('%Y-%m-%d %H:%M:%S'))
+
 
 #
 # class Loaction:
@@ -50,61 +54,96 @@ def _parse_args():
     #    parser.add_option('-v','--variation', dest='variation', type='string', help='input variation information file')
     parser.add_option('-g', '--gtf', dest='gtf', help='gtf file')
     parser.add_option('-o', '--output', dest='output', type='string', help='output prefix')
-    parser.add_option('-w','--windows-size',dest='window_size',type='int',default=3000000,help='window size')
+    parser.add_option('-w', '--windows-size', dest='window_size', type='int', default=3000000, help='window size')
     options, args = parser.parse_args()
     # positional arguments are ignored
     return options
 
 
-def slidingwindow(filehindle,schaffold,window_size):
-    filepointer = 0
-    last=[]
-    data=[]
-    end=window_size
+def slidingwindow(filehindle, window_size):  # generate sliding_window data
+
+    # init all parameters
+    start = 0
+    end = window_size
+    elment = filehindle.readline()
+    if not elment:
+        raise StopIteration()
+    elment = elment.strip()
+    tmp = elment.split('\t')
+    scaffold = tmp[0]
+    data = [[int(tmp[1]), int(tmp[2])]]
+
     while True:
-        if len(end)!=0:
-            data.append(last)
-            last=[]
-        elment=filehindle.readline()
-        if not elment:
-            yield data
+        elment = filehindle.readline()
+        if not elment:  # if file end ,raise stop
+            if len(data) != 0:
+                yield scaffold, data, start, end
             raise StopIteration()
-        # filepointer=filehindle.tell()
-        elment=elment.strip()
-        tmp=elment.split('\t')
-        if tmp[0]!=schaffold:
-            yield data
-            data=[]
-            filehindle.seek(filepointer)
-            # raise StopIteration()
+        elment = elment.strip()
+        tmp = elment.split('\t')
+
+        if tmp[0] != scaffold:  # if scaffold is not the same
+            if len(data) != 0:
+                yield scaffold, data, start, end
+            data = [[int(tmp[1]), int(tmp[2])]]
+            scaffold = tmp[0]
+        elif int(tmp[1]) > end:
+            if len(data) != 0:
+                yield scaffold, data, start, end
+            start = end
+            end += window_size
+            data = [[int(tmp[1]), int(tmp[2])]]
         else:
-            data.append(tmp[1:3])
-        filepointer=filehindle.tell()
-        # end+=window_size
-        if int(data[-1][0])>window_size:
-            last=data.pop()
-            yield data
-            data=[]
-            end+=window_size
+            data.append([int(tmp[1]), int(tmp[2])])
 
 
-def plotfig(windowdata):
-    data=numpy.array(windowdata)
-    fig=plt.bar(data[:,0],data[:,1],linewidth=0,width=1,color='r')
-    fig[0].set_color("r")
+def setcolorpattern(scaffld, pos):
+    '''
+    define the color of region,intergeneic is blue 'b', intron is yellow 'y' exon is red 'r'
+
+    :param scaffld: str
+    :param pos: int
+    :return: str
+    '''
+    lens = len(GTF_decoding.genomeDict[scaffld])
+    idx = GTF_decoding.B_Search(lens, pos, scaffld)
+    while True:
+        if GTF_decoding.genomeDict[scaffld][idx].start > pos:
+            return 'b'
+        elif GTF_decoding.genomeDict[scaffld][idx].start < pos and GTF_decoding.genomeDict[scaffld][idx].end > pos:
+            if GTF_decoding.genomeDict[scaffld][idx].IsinCommonIntrons(pos):
+                return 'y'
+            else:
+                return 'r'
+        elif GTF_decoding.genomeDict[scaffld][idx].end < pos and GTF_decoding.genomeDict[scaffld][idx + 1].start > pos:
+            return 'b'
+        else:
+            idx += 1
+
+
+def plotfig(windowdata, scaffold, start, end):
+    data = numpy.array(windowdata)
+    fig = plt.bar(data[:, 0], data[:, 1], linewidth=0, width=1, color='r')
+    for x in range(data.shape[0]):
+        color = setcolorpattern(scaffold, data[x][0])
+        fig[x].set_color(color)
     plt.show()
 
 
-
 def mian():
-    options=_parse_args()
+    options = _parse_args()
     GTF_decoding.decodegff(options.gtf)
     with open(options.input) as filehindle:
-        for key in GTF_decoding.genomeDict.keys():
-            itrator=slidingwindow(filehindle,key,options.window_size)
-            for windowdata in itrator:
-                plotfig(windowdata)
-
+        itrator = slidingwindow(filehindle, options.window_size)
+        count = random.randint(50, 100)
+        print(count)
+        for scaffold, windowdata, start, end in itrator:
+            if scaffold in GTF_decoding.genomeDict:
+                # plotfig(windowdata, scaffold, start, end)
+                count -= 1
+                if count == 0:
+                    plotfig(windowdata, scaffold, start, end)
+                    break
 
 
 if __name__ == '__main__':

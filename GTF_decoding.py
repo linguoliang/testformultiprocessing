@@ -55,7 +55,7 @@ class Isoform:
         #        self.Introns.append(int(self.IsoformDict["transcript"][0][1]))
         self.Introns.append(
             int(max(reduce(lambda x, y: [0, max(int(x[1]), int(y[1]))], self.IsoformDict["transcript"]))))
-        self.Introns = [[self.Introns[2 * i] + 1, self.Introns[2 * i + 1] - 1] for i in range(len(self.Introns) / 2)]
+        self.Introns = [[self.Introns[2 * i] + 1, self.Introns[2 * i + 1] - 1] for i in range(len(self.Introns) // 2)]
         self.Introns.pop()
         self.Introns.pop(0)
 
@@ -103,6 +103,12 @@ class GeneSubunit(Gene):
         self.minExon = 10000
         self.extraExon = []
 
+    def IsinCommonIntrons(self,Pos):
+        for x in self.CommonIntrons:
+            if x[0]<=Pos <= x[1]:
+                return True
+        return False
+
     def AddextraExon(self, exon):
         self.extraExon.append(exon)
 
@@ -120,7 +126,7 @@ class GeneSubunit(Gene):
         self.superIsoform = reduce(Isoverlab, self.superIsoform)
         self.superIsoform = [int(x) for x in self.superIsoform if True]
         self.exon = [[self.superIsoform[2 * i], self.superIsoform[2 * i + 1]] for i in
-                     range(len(self.superIsoform) / 2) if True]
+                     range(len(self.superIsoform) // 2) if True]
 
     def builtsuperIsoform(self):
 
@@ -137,7 +143,7 @@ class GeneSubunit(Gene):
             #     self.superIsoform.extend(x.IsoformDict["UTR"])
             superIsoform.extend(copy.deepcopy(x.IsoformDict['exon']))
         if self.extraExon != []:
-            superIsoform.extend(self.extraExon)
+            superIsoform.extend(copy.deepcopy(self.extraExon))
         superIsoform.sort(key=lambda x: int(x[0]))
         # superIsoform = map(lambda x: x[0:2], superIsoform)
         superIsoform = reduce(Isoverlab, superIsoform)
@@ -145,7 +151,7 @@ class GeneSubunit(Gene):
         superIsoform.insert(0, self.start)
         superIsoform.append(self.end)
         self.CommonIntrons = [[superIsoform[2 * i] + 1, superIsoform[2 * i + 1] - 1] for i in
-                              range(len(superIsoform) / 2) if True]
+                              range(len(superIsoform) // 2) if True]
         self.CommonIntrons.pop()
         self.CommonIntrons.pop(0)
 
