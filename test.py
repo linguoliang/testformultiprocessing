@@ -7,16 +7,27 @@ import time
 import numpy
 import random
 global list1
+import GTF_decoding
+GTF_decoding.decodegff('Homo_sapiens.GRCh38.85.gtf')
+# m=5
+# x=m
+# m+=7
+# print(m,x)
+
+
+
 # size=[]
-import plotslidingwindow
+# import plotslidingwindow
 # for x in range(30000):
 #     size.append([x,random.randint(1,100)])
-size=[[1,5],[2,5],[3,6],[4,7],[5,7],[6,8],[7,8],[8,9],[9,9],[10,9],[11,7],[12,7],[13,6],[14,6],[17,6],[18,3],[19,7]]
+# size=[[1,5],[2,5],[3,6],[4,7],[5,7],[6,8],[7,8],[8,9],[9,9],[10,9],[11,7],[12,7],[13,6],[14,6],[17,6],[18,3],[19,7]]
+#
+# plotslidingwindow.plotfig(size)
 
-plotslidingwindow.plotfig(size)
+
 # list1 = [[1,2],[3,4],[4,6]]
-# # list2=list1[:,0]
 # b=numpy.array(list1)
+# print(b.shape[0])
 # print(b[:,0])
 # tmp = []
 # if len(tmp) == 0:
@@ -67,3 +78,8 @@ plotslidingwindow.plotfig(size)
 #     t2 = time.time()
 #     print(t2 - t1)
 #     print(len(list1))
+
+
+m={'x':123,'y':321}
+for x in m:
+    print(x)
