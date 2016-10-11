@@ -2,6 +2,7 @@
 import seaborn as sb
 from matplotlib import pylab
 from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib
 import numpy
 import optparse
@@ -78,6 +79,7 @@ def slidingwindow(filehindle, window_size):  # generate sliding_window data
         if not elment:  # if file end ,raise stop
             if len(data) != 0:
                 yield scaffold, data, start, end
+            print("reach ends")
             raise StopIteration()
         elment = elment.strip()
         tmp = elment.split('\t')
@@ -120,29 +122,68 @@ def setcolorpattern(scaffld, pos):
         else:
             idx += 1
 
+def setxtick(start,end):
+    #设置x标签,使得两者范围落在[1,10)之间
+    counter=0
+    divisor=0
+    rangei=end-start
+    if rangei<=3:
+        return None
+    while not (1<=rangei<10):
+        rangei=rangei/10
+        counter+=1
+    if counter<3:
+        unit=''
+        divisor=10**0
+    elif 3<=counter<6:
+        unit='K'
+        divisor=10**3
+    elif 6<=counter<9:
+        unit='M'
+        divisor=10**6
+    elif 9<=counter<12:
+        unit='G'
+        divisor=10**9
+    elif 12<=counter<15:
+        unit='T'
+        divisor=10**12
+    else:
+        unit='P'
+        divisor=10**15
+    return divisor,unit,
 
-def plotfig(windowdata, scaffold, start, end):
+def plotfig(windowdata, scaffold, start, end,pdfhindle):
     data = numpy.array(windowdata)
     fig = plt.bar(data[:, 0], data[:, 1], linewidth=0, width=1, color='r')
+    plt.title("scaffold "+scaffold)
     for x in range(data.shape[0]):
         color = setcolorpattern(scaffold, data[x][0])
         fig[x].set_color(color)
+    xticks=setxtick(start,end)
+    plt.ylim(0,20)
+    plt.ylabel('Depth')
+    plt.xlabel('Position from '+start+' to '+end)
+    m=range(start,end+(end-start)//10,(end-start)//10)
+    q=map(lambda x:str(x/xticks[0])+xticks[1],m)
+    plt.xticks(m,q)
     plt.show()
+    # pdfhindle.savefig(fig)
 
 
 def mian():
+    pdf=PdfPages("results.pdf")
     options = _parse_args()
     GTF_decoding.decodegff(options.gtf)
     with open(options.input) as filehindle:
         itrator = slidingwindow(filehindle, options.window_size)
-        count = random.randint(50, 100)
+        count = random.randint(20,100)
         print(count)
         for scaffold, windowdata, start, end in itrator:
             if scaffold in GTF_decoding.genomeDict:
                 # plotfig(windowdata, scaffold, start, end)
                 count -= 1
                 if count == 0:
-                    plotfig(windowdata, scaffold, start, end)
+                    plotfig(windowdata, scaffold, start, end,pdf)
                     break
 
 

@@ -8,7 +8,7 @@ import numpy
 import random
 global list1
 import GTF_decoding
-GTF_decoding.decodegff('Homo_sapiens.GRCh38.85.gtf')
+# GTF_decoding.decodegff('Homo_sapiens.GRCh38.85.gtf')
 # m=5
 # x=m
 # m+=7
@@ -80,6 +80,8 @@ GTF_decoding.decodegff('Homo_sapiens.GRCh38.85.gtf')
 #     print(len(list1))
 
 
-m={'x':123,'y':321}
-for x in m:
-    print(x)
+# m={'x':123,'y':321}
+# for x in m:
+#     print(x)
+m=range(12.1,34.5,0.5)
+print(m)
